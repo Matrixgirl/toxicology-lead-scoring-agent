@@ -1,0 +1,89 @@
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(
+    page_title="Toxicology Lead Scoring Agent",
+    layout="wide"
+)
+
+st.title("🧪 Toxicology / 3D In-Vitro Lead Scoring Dashboard")
+st.caption("Auto-generated decision-maker leads ranked by funding + publication + hiring signals")
+
+# -------------------------
+# Load data (CSV / Demo)
+# -------------------------
+data = [
+    ["Dr John Smith","Director of Toxicology","ABC Biotech","Boston","Cambridge MA","Series B",
+     "Drug Induced Liver Injury",2024,"Yes","dr.john@abcbiotech.com","Remote",True,100,1],
+
+    ["Dr Michael Brown","VP Preclinical Safety","OncoNova","Bay Area","Bay Area","Series B",
+     "Liver Safety Biomarkers",2024,"Yes","dr.michael@onconova.com","Onsite",True,100,2],
+
+    ["Dr Priya Nair","Head of Translational Safety","GenovaBio","Cambridge MA","Cambridge MA","Series B",
+     "Drug Induced Liver Injury",2024,"Yes","dr.priya@genovabio.com","Onsite",True,100,3],
+
+    ["Dr Andreas Müller","Director of Investigative Toxicology","BioHelix","Munich","Basel","Series A",
+     "Drug Metabolism and Liver Injury",2024,"Yes","dr.andreas@biohelix.eu","Remote",True,100,4],
+
+    ["Dr Robert Wilson","Director of Safety Pharmacology","CardioLife","Boston","Boston","IPO",
+     "Organ-on-Chip Liver Models",2023,"Yes","dr.robert@cardiolife.com","Onsite",True,100,5],
+
+    ["Dr Emily Chen","Head of Safety Assessment","NeoPharma","Basel","Basel","Series A",
+     "Hepatic Toxicity Models",2023,"Yes","dr.emily@neopharma.com","Onsite",True,65,6],
+
+    ["Dr Laura Martinez","Senior Toxicologist","HepatoTech","San Diego","San Diego","Series C",
+     "In Vitro Hepatic Models",2022,"Yes","dr.laura@hepatotech.com","Onsite",True,35,7],
+
+    ["Dr Sarah Patel","Principal Scientist","TheraGen","London","UK Golden Triangle","Private",
+     "3D Cell Culture for Toxicology",2023,"Yes","dr.sarah@theragen.co.uk","Remote",True,15,8],
+
+    ["Jane Doe","Junior Scientist","StartupX","Texas","San Diego","Seed",
+     "Cell Culture Methods",2021,"No","jane.doe@startupx.io","Remote",True,0,9],
+
+    ["Dr Kevin Lee","Scientist","EarlyBio","Toronto","Toronto","Pre-Seed",
+     "Toxicology Screening",2021,"No","dr.kevin@earlybio.ai","Onsite",False,0,10],
+]
+
+columns = [
+    "name","title","company","person_location","company_hq","funding_stage",
+    "publication_topic","publication_year","uses_invitro","email",
+    "work_mode","company_in_hub","probability_score","rank"
+]
+
+df = pd.DataFrame(data, columns=columns)
+
+# -------------------------
+# Sidebar Filters
+# -------------------------
+st.sidebar.header("🔎 Filters")
+
+min_score = st.sidebar.slider("Minimum Probability Score", 0, 100, 30)
+uses_invitro = st.sidebar.checkbox("Uses In-Vitro Models Only", value=True)
+
+filtered = df[df["probability_score"] >= min_score]
+
+if uses_invitro:
+    filtered = filtered[filtered["uses_invitro"] == "Yes"]
+
+# -------------------------
+# Display
+# -------------------------
+st.subheader(f"Qualified Leads ({len(filtered)})")
+
+st.dataframe(
+    filtered.sort_values("rank"),
+    use_container_width=True,
+    hide_index=True
+)
+
+# -------------------------
+# Download
+# -------------------------
+st.download_button(
+    "⬇️ Download Leads (CSV)",
+    filtered.to_csv(index=False),
+    file_name="toxicology_leads.csv",
+    mime="text/csv"
+)
+
+st.caption("Lead scores derived from funding stage, publication relevance, hiring seniority, and in-vitro usage signals.")
